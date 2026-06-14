@@ -1,12 +1,15 @@
-namespace SimpleRPG.Core.Entities.Heroes
+using SimpleRPG.Core.Enums;
+
+namespace SimpleRPG.Core.Entities.Enemies
 {
-    internal class ClarkHero : Entity
+    internal class KingOrcEnemy : Entity
     {
-        public ClarkHero(int level)
+        public KingOrcEnemy(int level, PropertyEnum property)
         {
-            Name = "Clark";
-            Description = "Clark Description";
+            Name = "King Orc";
+            Description = "King Orc Description";
             Level = level;
+            Property = property;
             ApplyLevelGrowth();
         }
 

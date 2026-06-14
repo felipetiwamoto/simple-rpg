@@ -1,12 +1,12 @@
-namespace SimpleRPG.Core.Entities.Heroes.Elizabeth
+namespace SimpleRPG.Core.Entities.Heroes
 {
     internal class ElizabethCostume01 : Costume
     {
-        public ElizabethCostume01(int Copies)
+        public ElizabethCostume01(int copies)
         {
             Name = "ElizabethCostume01 Name";
             Description = "ElizabethCostume01 Description";
-            this.Copies = Copies;
+            Copies = copies;
             Cost = 4;
             Hits = 1;
             Range = new int[][]
@@ -18,7 +18,7 @@ namespace SimpleRPG.Core.Entities.Heroes.Elizabeth
             Stats.Atk = 200;
         }
 
-        public override void applyCopiesGrowth()
+        public override void ApplyCopiesGrowth()
         {
             if (Copies >= 1) Cost--;
             if (Copies >= 2) Stats.Atk = 300;

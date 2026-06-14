@@ -1,12 +1,12 @@
-﻿namespace SimpleRPG.Core.Enums
+namespace SimpleRPG.Core.Enums
 {
     internal enum PropertyEnum
     {
-        NEUTRAL,
-        FIRE,
-        WATER,
-        WIND,
-        LIGHT,
-        DARK
+        Neutral,
+        Fire,
+        Water,
+        Wind,
+        Light,
+        Dark
     }
 }

@@ -1,12 +1,12 @@
-namespace SimpleRPG.Core.Entities.Heroes.Marco
+namespace SimpleRPG.Core.Entities.Heroes
 {
     internal class MarcoCostume03 : Costume
     {
-        public MarcoCostume03(int Copies)
+        public MarcoCostume03(int copies)
         {
             Name = "MarcoCostume03 Name";
             Description = "MarcoCostume03 Description";
-            this.Copies = Copies;
+            Copies = copies;
             Cost = 4;
             Hits = 1;
             Range = new int[][]
@@ -18,7 +18,7 @@ namespace SimpleRPG.Core.Entities.Heroes.Marco
             Stats.Atk = 100;
         }
 
-        public override void applyCopiesGrowth()
+        public override void ApplyCopiesGrowth()
         {
             if (Copies >= 1) Cost--;
             if (Copies >= 2) Stats.Atk = 150;

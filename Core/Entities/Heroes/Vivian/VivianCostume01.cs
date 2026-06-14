@@ -1,12 +1,12 @@
-namespace SimpleRPG.Core.Entities.Heroes.Vivian
+namespace SimpleRPG.Core.Entities.Heroes
 {
     internal class VivianCostume01 : Costume
     {
-        public VivianCostume01(int Copies)
+        public VivianCostume01(int copies)
         {
             Name = "VivianCostume01 Name";
             Description = "VivianCostume01 Description";
-            this.Copies = Copies;
+            Copies = copies;
             Cost = 4;
             Hits = 1;
             Range = new int[][]
@@ -18,7 +18,7 @@ namespace SimpleRPG.Core.Entities.Heroes.Vivian
             Stats.Atk = 200;
         }
 
-        public override void applyCopiesGrowth()
+        public override void ApplyCopiesGrowth()
         {
             if (Copies >= 1) Cost--;
             if (Copies >= 2) Stats.Atk = 300;

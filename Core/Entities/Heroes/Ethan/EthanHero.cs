@@ -1,27 +1,28 @@
-namespace SimpleRPG.Core.Entities.Heroes.Ethan
+namespace SimpleRPG.Core.Entities.Heroes
 {
     internal class EthanHero : Entity
     {
-        public EthanHero(int Level) {
-            this.Name = "Ethan";
-            this.Description = "A brave warrior with a strong sense of justice.";
-            this.Level = Level;
-            this.applyLevelGrowth();
-        }
-        override public void applyLevelGrowth()
+        public EthanHero(int level)
         {
-            BaseStats.MaxHP += Level * 50;
+            Name = "Ethan";
+            Description = "A brave warrior with a strong sense of justice.";
+            Level = level;
+            ApplyLevelGrowth();
+        }
+        public override void ApplyLevelGrowth()
+        {
+            BaseStats.MaxHp += Level * 50;
             BaseStats.Atk += Level * 5;
 
-            BaseStats.Mdef += bonusEvery10Levels(0.5f);
-            BaseStats.CritRate += bonusEvery10Levels(1f);
-            BaseStats.CritDmg += bonusEvery10Levels(5f);
+            BaseStats.Mdef += BonusEvery10Levels(0.5f);
+            BaseStats.CritRate += BonusEvery10Levels(1f);
+            BaseStats.CritDmg += BonusEvery10Levels(5f);
 
-            BaseStats.Def += bonusEvery5Levels(0.5f);
-            BaseStats.CritDmg += bonusEvery5Levels(5f);
+            BaseStats.Def += BonusEvery5Levels(0.5f);
+            BaseStats.CritDmg += BonusEvery5Levels(5f);
 
-            CurrentHP = BaseStats.MaxHP;
-            FinalStats.copyFrom(BaseStats);
+            CurrentHp = BaseStats.MaxHp;
+            FinalStats.CopyFrom(BaseStats);
         }
     }
 }

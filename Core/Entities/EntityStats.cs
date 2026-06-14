@@ -2,7 +2,7 @@ namespace SimpleRPG.Core.Entities
 {
     internal class EntityStats
     {
-        public int MaxHP { get; set; }
+        public int MaxHp { get; set; }
         public int Atk { get; set; }
         public int Matk { get; set; }
         public float Def { get; set; }
@@ -11,9 +11,9 @@ namespace SimpleRPG.Core.Entities
         public float CritDmg { get; set; }
         public float PropertyDmg { get; set; }
 
-        public void copyFrom(EntityStats stats)
+        public void CopyFrom(EntityStats stats)
         {
-            MaxHP = stats.MaxHP;
+            MaxHp = stats.MaxHp;
             Atk = stats.Atk;
             Matk = stats.Matk;
             Def = stats.Def;

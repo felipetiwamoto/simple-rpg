@@ -1,4 +1,4 @@
-﻿using SimpleRPG.Core.Enums;
+using SimpleRPG.Core.Enums;
 
 namespace SimpleRPG.Core.Equips
 {
@@ -7,10 +7,10 @@ namespace SimpleRPG.Core.Equips
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public EquipTypeEnum Type { get; set; }
-        public int rarity { get; set; }
+        public int Rarity { get; set; }
         public int Level { get; set; }
-        public int FlatHP { get; set; }
-        public float PercentHP { get; set; }
+        public int FlatHp { get; set; }
+        public float PercentHp { get; set; }
         public int FlatAtk { get; set; }
         public float PercentAtk { get; set; }
         public int FlatMatk { get; set; }
@@ -20,6 +20,6 @@ namespace SimpleRPG.Core.Equips
         public float CritRate { get; set; }
         public float CritDmg { get; set; }
 
-        abstract public void applyLevelGrowth(int level);
+        public abstract void ApplyLevelGrowth(int level);
     }
 }

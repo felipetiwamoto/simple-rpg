@@ -1,36 +1,36 @@
-namespace SimpleRPG.Core.Entities.Heroes.Ethan
+namespace SimpleRPG.Core.Entities.Heroes
 {
     internal class EthanCostume03 : Costume
     {
-        public EthanCostume03(int Copies)
+        public EthanCostume03(int copies)
         {
-            this.Name = "EthanCostume03 Name";
-            this.Description = "EthanCostume03 Description";
-            this.Copies = Copies;
-            this.Cost = 4;
-            this.Hits = 1;
-            this.Range = new int[][] {
+            Name = "EthanCostume03 Name";
+            Description = "EthanCostume03 Description";
+            Copies = copies;
+            Cost = 4;
+            Hits = 1;
+            Range = new int[][] {
                 new int[] { 0, 1, 0 },
                 new int[] { 1, 2, 1 },
                 new int[] { 0, 1, 0 },
             };
-            this.Stats.Atk = 100;
+            Stats.Atk = 100;
         }
 
-        public override void applyCopiesGrowth()
+        public override void ApplyCopiesGrowth()
         {
-            if (this.Copies >= 1) this.Cost--;
-            if (this.Copies >= 2) this.Stats.Atk = 150;
-            if (this.Copies >= 3)
+            if (Copies >= 1) Cost--;
+            if (Copies >= 2) Stats.Atk = 150;
+            if (Copies >= 3)
             {
-                this.Range = new int[][] {
+                Range = new int[][] {
                     new int[] { 1, 1, 1 },
                     new int[] { 1, 2, 1 },
                     new int[] { 1, 1, 1 },
                 };
             }
-            if (this.Copies >= 4) this.Stats.Atk = 200;
-            if (this.Copies >= 5) this.Stats.Atk = 250;
+            if (Copies >= 4) Stats.Atk = 200;
+            if (Copies >= 5) Stats.Atk = 250;
         }
     }
 }
