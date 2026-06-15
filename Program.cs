@@ -1,5 +1,3 @@
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using SimpleRPG.Core.Entities;
 using SimpleRPG.Core.Entities.Enemies;
 using SimpleRPG.Core.Entities.Heroes;
@@ -10,11 +8,15 @@ using SimpleRPG.Core.Fight;
 Entity ethan = new EthanHero(99);
 Entity vivian = new VivianHero(99);
 
+ethan.AddCostume(new EthanCostume01(0));
+ethan.AddCostume(new EthanCostume02(0));
+ethan.AddCostume(new EthanCostume03(0));
+
 EntityInBoard[] heroesInBoard = {
     new EntityInBoard(ethan, 0, 0),
     new EntityInBoard(vivian, 0, 1)
 };
-Board heroesBoard = new Board(6, 5, heroesInBoard);
+Board heroesBoard = new Board(4, 3, heroesInBoard);
 
 // ENEMIES
 Entity orc = new OrcEnemy(80, PropertyEnum.Water);
@@ -24,17 +26,8 @@ EntityInBoard[] enemiesInBoard = {
     new EntityInBoard(orc, 0, 0),
     new EntityInBoard(dragon, 0, 1)
 };
-Board enemiesBoard = new Board(6, 5, enemiesInBoard);
-
-JsonSerializerOptions jsonOptions = new()
-{
-    WriteIndented = true,
-    Converters = { new JsonStringEnumConverter() }
-};
+Board enemiesBoard = new Board(4, 3, enemiesInBoard);
 
 // BATTLE
 Battle battle = new Battle(heroesBoard, enemiesBoard);
-battle.Print();
-
-//Console.WriteLine(JsonSerializer.Serialize(heroesBoard, jsonOptions));
-//Console.WriteLine(JsonSerializer.Serialize(enemiesBoard, jsonOptions));
+battle.Run();

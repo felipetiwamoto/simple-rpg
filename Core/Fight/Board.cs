@@ -1,8 +1,10 @@
+using SimpleRPG.Core.Entities;
+
 namespace SimpleRPG.Core.Fight
 {
     internal class Board
     {
-        private const int MenuWidth = 20;
+        public const int MenuWidth = 20;
 
         public int Rows { get; set; }
         public int Columns { get; set; }
@@ -19,35 +21,90 @@ namespace SimpleRPG.Core.Fight
             EntitiesInBoard = entitiesInBoard;
         }
 
-        public string[] PrintMenu(bool reverse = false)
+        public BattleRenderLine[] PrintMenu(bool reverse = false)
         {
-            List<string> menuLines = new();
+            List<BattleRenderLine> menuLines = new();
 
             foreach (EntityInBoard entityInBoard in EntitiesInBoard)
             {
-                string name = entityInBoard.Entity.Name;
-                string hp = $"{entityInBoard.Entity.CurrentHp}/{entityInBoard.Entity.FinalStats.MaxHp}";
+                bool isSelected = ReferenceEquals(entityInBoard, SelectedEntity);
+                string name = FitText(entityInBoard.Entity.Name, MenuWidth - 1);
+                string hp =
+                    $"{entityInBoard.Entity.CurrentHp}/{entityInBoard.Entity.FinalStats.MaxHp}";
 
-                menuLines.Add(AlignText(name, reverse));
-                menuLines.Add(AlignText(hp, reverse));
-                menuLines.Add(new string('-', MenuWidth + 1));
+                string nameLine = AlignText(name, reverse);
+                string hpLine = AlignText(hp, reverse);
+                int nameStart = reverse
+                    ? MenuWidth - name.Length
+                    : 0;
+
+                menuLines.Add(isSelected
+                    ? new BattleRenderLine(
+                        nameLine,
+                        new TextHighlight(nameStart, name.Length))
+                    : new BattleRenderLine(nameLine));
+                menuLines.Add(new BattleRenderLine(hpLine));
+                menuLines.Add(new BattleRenderLine(
+                    new string('-', MenuWidth + 1)));
             }
 
             return menuLines.ToArray();
         }
 
-        public void PrintSubMenu() { }
+        public BattleRenderLine[] PrintSubMenu(
+            int selectedCostumeIndex,
+            bool reverse = false)
+        {
+            if (SelectedEntity is null)
+            {
+                return Array.Empty<BattleRenderLine>();
+            }
 
-        public Dictionary<int, string> PrintTerrain(
+            Costume[] costumes = SelectedEntity.Entity.Costumes;
+
+            if (costumes.Length == 0)
+            {
+                return
+                [
+                    new BattleRenderLine(AlignText("No costumes", reverse))
+                ];
+            }
+
+            List<BattleRenderLine> subMenuLines = new();
+
+            for (int index = 0; index < costumes.Length; index++)
+            {
+                Costume costume = costumes[index];
+                string name = FitText(costume.Name, MenuWidth - 1);
+                string nameLine = AlignText(name, reverse);
+                string spLine = AlignText($"SP: {costume.Cost}", reverse);
+                int nameStart = reverse
+                    ? MenuWidth - name.Length
+                    : 0;
+
+                subMenuLines.Add(index == selectedCostumeIndex
+                    ? new BattleRenderLine(
+                        nameLine,
+                        new TextHighlight(nameStart, name.Length))
+                    : new BattleRenderLine(nameLine));
+                subMenuLines.Add(new BattleRenderLine(spLine));
+                subMenuLines.Add(new BattleRenderLine(
+                    new string('-', MenuWidth + 1)));
+            }
+
+            return subMenuLines.ToArray();
+        }
+
+        public Dictionary<int, BattleRenderLine> PrintTerrain(
             int boardStartRow,
             int spRow,
             bool reverse = false)
         {
-            Dictionary<int, string> terrainLines = new();
+            Dictionary<int, BattleRenderLine> terrainLines = new();
             string teamName = reverse ? "Enemies" : "Heroes";
-            string spText = $"{teamName} SP: {CurrentSp}/{MaxSp}";
 
-            terrainLines[spRow] = spText;
+            terrainLines[spRow] = new BattleRenderLine(
+                $"{teamName} SP: {CurrentSp}/{MaxSp}");
 
             HashSet<(int Row, int Col)> occupiedPositions = EntitiesInBoard
                 .Select(entityInBoard => (entityInBoard.Row, entityInBoard.Col))
@@ -58,20 +115,33 @@ namespace SimpleRPG.Core.Fight
                 int sourceRow = reverse
                     ? Rows - 1 - displayRow
                     : displayRow;
+                string boardRow = string.Empty;
+                List<TextHighlight> highlights = new();
 
-                string boardRow = string.Concat(
-                    Enumerable.Range(0, Columns).Select(displayColumn =>
+                for (int displayColumn = 0;
+                    displayColumn < Columns;
+                    displayColumn++)
+                {
+                    int sourceColumn = reverse
+                        ? Columns - 1 - displayColumn
+                        : displayColumn;
+                    bool isOccupied =
+                        occupiedPositions.Contains((sourceRow, sourceColumn));
+                    bool isSelected =
+                        SelectedEntity?.Row == sourceRow
+                        && SelectedEntity.Col == sourceColumn;
+
+                    int cellStart = boardRow.Length;
+                    boardRow += isOccupied ? "[o]" : "[ ]";
+
+                    if (isSelected)
                     {
-                        int sourceColumn = reverse
-                            ? Columns - 1 - displayColumn
-                            : displayColumn;
+                        highlights.Add(new TextHighlight(cellStart, 3));
+                    }
+                }
 
-                        return occupiedPositions.Contains((sourceRow, sourceColumn))
-                            ? "[o]"
-                            : "[ ]";
-                    }));
-
-                terrainLines[boardStartRow + displayRow] = boardRow;
+                terrainLines[boardStartRow + displayRow] =
+                    new BattleRenderLine(boardRow, highlights.ToArray());
             }
 
             return terrainLines;
@@ -80,14 +150,18 @@ namespace SimpleRPG.Core.Fight
         private static string AlignText(string text, bool reverse)
         {
             const int contentWidth = MenuWidth - 1;
-
-            string visibleText = text.Length > contentWidth
-                ? text[..contentWidth]
-                : text;
+            string visibleText = FitText(text, contentWidth);
 
             return reverse
-                ? $"|{ visibleText.PadLeft(contentWidth)}"
-                : $"{ visibleText.PadRight(contentWidth)}|";
+                ? $"|{visibleText.PadLeft(contentWidth)}"
+                : $"{visibleText.PadRight(contentWidth)}|";
+        }
+
+        private static string FitText(string text, int width)
+        {
+            return text.Length > width
+                ? text[..width]
+                : text;
         }
     }
 }
