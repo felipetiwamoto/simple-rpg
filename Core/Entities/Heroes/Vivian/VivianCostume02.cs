@@ -16,6 +16,7 @@ namespace SimpleRPG.Core.Entities.Heroes
                 new int[] { 0, 0, 0 },
             };
             Stats.Atk = 100;
+            ApplyCopiesGrowth();
         }
 
         public override void ApplyCopiesGrowth()
