@@ -8,7 +8,8 @@ namespace SimpleRPG.Core.Fight
         private const int PanelWidth = 100;
         private const int PanelHeight = 26;
 
-        public ConsoleKey Key = ConsoleKey.D1;
+        public ConsoleKey Key;
+        public string selectedMenu = "DEFAULT";
         public Board HeroesBoard { get; set; }
         public Board EnemiesBoard { get; set; }
         public int Turn { get; set; } = 1;
@@ -33,10 +34,12 @@ namespace SimpleRPG.Core.Fight
             try
             {
                 bool isRunning = true;
+                Print();
                 while (isRunning)
                 {
-                    Print();
                     this.Key = Console.ReadKey(intercept: true).Key;
+                    ProcessKey();
+                    Print();
                 }
             }
             finally
@@ -49,6 +52,7 @@ namespace SimpleRPG.Core.Fight
         public void Print()
         {
             this.PrintEdges();
+            this.PrintInfo();
 
             this.HeroesBoard.PrintMenu();
             this.HeroesBoard.PrintTerrain();
@@ -60,72 +64,109 @@ namespace SimpleRPG.Core.Fight
 
             if (this.EnemiesBoard.HoveringEntity is not null)
                 this.EnemiesBoard.PrintSubMenu(reverse: true);
+        }
 
-            this.PrintInfo();
+        public void ProcessKey()
+        {
+            if (this.selectedMenu == "DEFAULT")
+            {
+                if (Key == ConsoleKey.D1 || Key == ConsoleKey.NumPad1)
+                {
+                    this.selectedMenu = "HEROES_MENU";
+                    this.EnemiesBoard.HoveringEntity = null;
+                    this.HeroesBoard.HoveringEntity = this.HeroesBoard.EntitiesInBoard.FirstOrDefault();
+                }
+                if (Key == ConsoleKey.D2 || Key == ConsoleKey.NumPad2)
+                {
+                    this.selectedMenu = "ENEMIES_MENU";
+                    this.HeroesBoard.HoveringEntity = null;
+                    this.EnemiesBoard.HoveringEntity = this.EnemiesBoard.EntitiesInBoard.FirstOrDefault();
+                }
+            }
 
-            if (Key == ConsoleKey.D1 || Key == ConsoleKey.NumPad1)
+            if (this.selectedMenu == "HEROES_MENU")
             {
-                this.EnemiesBoard.HoveringEntity = null;
-                this.HeroesBoard.HoveringEntity = this.HeroesBoard.EntitiesInBoard.FirstOrDefault();
-            }
-            if (Key == ConsoleKey.D2 || Key == ConsoleKey.NumPad2)
-            {
-                this.HeroesBoard.HoveringEntity = null;
-                this.EnemiesBoard.HoveringEntity = this.EnemiesBoard.EntitiesInBoard.FirstOrDefault();
-            }
-            // KEYBOARD NAVIGATION IN MENUS
-            if (Key == ConsoleKey.UpArrow)
-            {
-                if (this.HeroesBoard.HoveringEntity is not null)
+                if (Key == ConsoleKey.UpArrow) MoveHoveringEntity(this.HeroesBoard, -1);
+                if (Key == ConsoleKey.DownArrow) MoveHoveringEntity(this.HeroesBoard, 1);
+                if (Key == ConsoleKey.Enter)
                 {
-                    int currentIndex = Array.IndexOf(this.HeroesBoard.EntitiesInBoard, this.HeroesBoard.HoveringEntity);
-                    int nextIndex = (currentIndex - 1 + this.HeroesBoard.EntitiesInBoard.Length) % this.HeroesBoard.EntitiesInBoard.Length;
-                    this.HeroesBoard.HoveringEntity = this.HeroesBoard.EntitiesInBoard[nextIndex];
+                    this.selectedMenu = "HEROES_SUBMENU";
+                    this.HeroesBoard.HoveringCostume =
+                        this.HeroesBoard.HoveringEntity?.Entity.Costumes.FirstOrDefault();
                 }
-                else if (this.EnemiesBoard.HoveringEntity is not null)
-                {
-                    int currentIndex = Array.IndexOf(this.EnemiesBoard.EntitiesInBoard, this.EnemiesBoard.HoveringEntity);
-                    int nextIndex = (currentIndex - 1 + this.EnemiesBoard.EntitiesInBoard.Length) % this.EnemiesBoard.EntitiesInBoard.Length;
-                    this.EnemiesBoard.HoveringEntity = this.EnemiesBoard.EntitiesInBoard[nextIndex];
-                }
+                if (Key == ConsoleKey.Backspace) ResetMenus();
             }
-            if (Key == ConsoleKey.DownArrow)
-            {
-                if (this.HeroesBoard.HoveringEntity is not null)
-                {
-                    int currentIndex = Array.IndexOf(
-                        this.HeroesBoard.EntitiesInBoard,
-                        this.HeroesBoard.HoveringEntity);
-                    int nextIndex = (currentIndex + 1) % this.HeroesBoard.EntitiesInBoard.Length;
-                    this.HeroesBoard.HoveringEntity = this.HeroesBoard.EntitiesInBoard[nextIndex];
-                }
-                else if (this.EnemiesBoard.HoveringEntity is not null)
-                {
-                    int currentIndex = Array.IndexOf(
-                        this.EnemiesBoard.EntitiesInBoard,
-                        this.EnemiesBoard.HoveringEntity);
-                    int nextIndex = (currentIndex + 1) % this.EnemiesBoard.EntitiesInBoard.Length;
-                    this.EnemiesBoard.HoveringEntity = this.EnemiesBoard.EntitiesInBoard[nextIndex];
-                }
-            }
-            if (Key == ConsoleKey.Enter)
-            {
-                if (this.HeroesBoard.HoveringEntity is not null)
-                {
-                    // Open Heroes submenu
-                }
-                else if (this.EnemiesBoard.HoveringEntity is not null)
-                {
-                    // Open Enemies submenu
-                }
-            }
-            if (Key == ConsoleKey.Backspace)
-            {
-                this.HeroesBoard.SelectedEntity = null;
-                this.EnemiesBoard.SelectedEntity = null;
-            }
-            //if (Key == ConsoleKey.D1 || Key == ConsoleKey.NumPad1) this.PrintInfoDefault();
 
+            if (this.selectedMenu == "HEROES_SUBMENU")
+            {
+                if (Key == ConsoleKey.UpArrow) MoveHoveringCostume(this.HeroesBoard, -1);
+                if (Key == ConsoleKey.DownArrow) MoveHoveringCostume(this.HeroesBoard, 1);
+                if (Key == ConsoleKey.Enter) { }
+                if (Key == ConsoleKey.Backspace)
+                {
+                    this.HeroesBoard.HoveringCostume = null;
+                    this.selectedMenu = "HEROES_MENU";
+                }
+            }
+            if (this.selectedMenu == "HEROES_POSITION") { }
+            if (this.selectedMenu == "HEROES_ORDER") { }
+
+            if (this.selectedMenu == "ENEMIES_MENU")
+            {
+                if (Key == ConsoleKey.UpArrow) MoveHoveringEntity(this.EnemiesBoard, -1);
+                if (Key == ConsoleKey.DownArrow) MoveHoveringEntity(this.EnemiesBoard, 1);
+                if (Key == ConsoleKey.Enter)
+                {
+                    this.selectedMenu = "ENEMIES_SUBMENU";
+                    this.EnemiesBoard.HoveringCostume =
+                        this.EnemiesBoard.HoveringEntity?.Entity.Costumes.FirstOrDefault();
+                }
+                if (Key == ConsoleKey.Backspace) ResetMenus();
+            }
+
+            if (this.selectedMenu == "ENEMIES_SUBMENU")
+            {
+                if (Key == ConsoleKey.UpArrow) MoveHoveringCostume(this.EnemiesBoard, -1);
+                if (Key == ConsoleKey.DownArrow) MoveHoveringCostume(this.EnemiesBoard, 1);
+                if (Key == ConsoleKey.Backspace)
+                {
+                    this.EnemiesBoard.HoveringCostume = null;
+                    this.selectedMenu = "ENEMIES_MENU";
+                }
+            }
+            //if (this.selectedMenu == "ENEMIES_POSITION") { }
+            //if (this.selectedMenu == "ENEMIES_ORDER") { }
+        }
+
+        private static void MoveHoveringEntity(Board board, int direction)
+        {
+            if (board.EntitiesInBoard.Length == 0) return;
+
+            int currentIndex = Array.IndexOf(board.EntitiesInBoard, board.HoveringEntity);
+            int nextIndex = (currentIndex + direction + board.EntitiesInBoard.Length) % board.EntitiesInBoard.Length;
+            board.HoveringEntity = board.EntitiesInBoard[nextIndex];
+        }
+
+        private static void MoveHoveringCostume(Board board, int direction)
+        {
+            Costume[] costumes = board.HoveringEntity?.Entity.Costumes
+                ?? Array.Empty<Costume>();
+            if (costumes.Length == 0) return;
+
+            int currentIndex = Array.IndexOf(costumes, board.HoveringCostume);
+            int nextIndex = (currentIndex + direction + costumes.Length) % costumes.Length;
+            board.HoveringCostume = costumes[nextIndex];
+        }
+
+        private void ResetMenus()
+        {
+            this.selectedMenu = "DEFAULT";
+            this.HeroesBoard.HoveringEntity = null;
+            this.EnemiesBoard.HoveringEntity = null;
+            this.HeroesBoard.HoveringCostume = null;
+            this.EnemiesBoard.HoveringCostume = null;
+            this.HeroesBoard.SelectedEntity = null;
+            this.EnemiesBoard.SelectedEntity = null;
         }
         public void PrintEdges()
         {

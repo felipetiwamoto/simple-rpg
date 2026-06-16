@@ -13,7 +13,7 @@ namespace SimpleRPG.Core.Fight
         public int[][] InRange { get; set; } = Array.Empty<int[]>();
         public EntityInBoard? HoveringEntity { get; set; }
         public EntityInBoard? SelectedEntity { get; set; }
-        public Costume HoveringCostume { get; set; }
+        public Costume? HoveringCostume { get; set; }
         public EntityInBoard[] EntitiesInBoard { get; set; }
 
         public Board(int rows, int columns, EntityInBoard[] entitiesInBoard)
@@ -92,19 +92,27 @@ namespace SimpleRPG.Core.Fight
 
                 if (costume is not null)
                 {
+                    string costumeName = costume.Name.Length > 15
+                        ? costume.Name[..15]
+                        : costume.Name;
                     string cost = $"SP: {costume.Cost}";
                     int nameColumn = reverse
-                        ? subMenuStartColumn + MenuWidth - costume.Name.Length
+                        ? subMenuStartColumn + MenuWidth - costumeName.Length
                         : subMenuStartColumn + 2;
                     int costColumn = reverse
                         ? subMenuStartColumn + MenuWidth - cost.Length
                         : subMenuStartColumn + 2;
 
+                    ConsoleColor previousColor = Console.ForegroundColor;
+                    if (HoveringCostume == costume) Console.ForegroundColor = ConsoleColor.Green;
+
                     Console.SetCursorPosition(nameColumn, currentLine);
-                    Console.Write(costume.Name);
+                    Console.Write(costumeName);
 
                     Console.SetCursorPosition(costColumn, currentLine + 1);
                     Console.Write(cost);
+
+                    Console.ForegroundColor = previousColor;
                 }
             }
         }
@@ -133,27 +141,31 @@ namespace SimpleRPG.Core.Fight
             int panelWidth,
             bool reverse = false)
         {
-            HashSet<(int Row, int Col)> occupiedPositions = EntitiesInBoard
-                .Select(entityInBoard => (entityInBoard.Row, entityInBoard.Col))
-                .ToHashSet();
+            int boardWidth = Columns * 3;
+            int boardStartColumn = (panelWidth - boardWidth) / 2;
 
             for (int displayRow = 0; displayRow < Rows; displayRow++)
             {
                 int sourceRow = reverse ? Rows - 1 - displayRow : displayRow;
-                string boardLine = "";
 
                 for (int displayColumn = 0; displayColumn < Columns; displayColumn++)
                 {
-                    int sourceColumn = reverse
-                        ? Columns - 1 - displayColumn
-                        : displayColumn;
+                    int sourceColumn = reverse ? Columns - 1 - displayColumn : displayColumn;
+                    EntityInBoard? entityInBoard = EntitiesInBoard.FirstOrDefault(entityInBoard =>
+                        entityInBoard.Row == sourceRow && entityInBoard.Col == sourceColumn);
+                    bool isHoveringEntity = entityInBoard is not null && HoveringEntity == entityInBoard;
+                    string cell = entityInBoard is not null ? "[o]" : "[ ]";
+                    ConsoleColor previousColor = Console.ForegroundColor;
 
-                    boardLine += occupiedPositions.Contains((sourceRow, sourceColumn))
-                        ? "[o]"
-                        : "[ ]";
+                    if (isHoveringEntity) Console.ForegroundColor = ConsoleColor.Green;
+
+                    Console.SetCursorPosition(
+                        boardStartColumn + displayColumn * 3,
+                        startLine + displayRow);
+                    Console.Write(cell);
+
+                    Console.ForegroundColor = previousColor;
                 }
-
-                PrintCenteredText(boardLine, startLine + displayRow, panelWidth);
             }
         }
 
