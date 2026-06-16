@@ -10,6 +10,7 @@ namespace SimpleRPG.Core.Entities.Enemies
             Description = "King Mutant Description";
             Level = level;
             Property = property;
+            Target = TargetEnum.First;
             ApplyLevelGrowth();
         }
 

@@ -10,6 +10,7 @@ namespace SimpleRPG.Core.Entities.Enemies
             Description = "Dragon Description";
             Level = level;
             Property = property;
+            Target = TargetEnum.Last;
             ApplyLevelGrowth();
         }
 

@@ -10,6 +10,7 @@ namespace SimpleRPG.Core.Entities.Enemies
             Description = "Slime Description";
             Level = level;
             Property = property;
+            Target = TargetEnum.Next;
             ApplyLevelGrowth();
         }
 

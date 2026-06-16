@@ -1,3 +1,5 @@
+using SimpleRPG.Core.Enums;
+
 namespace SimpleRPG.Core.Entities.Heroes
 {
     internal class ClarkHero : Entity
@@ -7,6 +9,8 @@ namespace SimpleRPG.Core.Entities.Heroes
             Name = "Clark";
             Description = "Clark Description";
             Level = level;
+            Property = PropertyEnum.Neutral;
+            Target = TargetEnum.Next;
             ApplyLevelGrowth();
         }
 

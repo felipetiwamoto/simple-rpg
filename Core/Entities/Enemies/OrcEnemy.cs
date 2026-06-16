@@ -10,6 +10,7 @@ namespace SimpleRPG.Core.Entities.Enemies
             Description = "Orc Description";
             Level = level;
             Property = property;
+            Target = TargetEnum.First;
             ApplyLevelGrowth();
         }
 

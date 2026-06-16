@@ -10,6 +10,7 @@ namespace SimpleRPG.Core.Entities.Enemies
             Description = "King Dummy Description";
             Level = level;
             Property = property;
+            Target = TargetEnum.Last;
             ApplyLevelGrowth();
         }
 

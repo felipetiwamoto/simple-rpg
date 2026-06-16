@@ -10,6 +10,7 @@ namespace SimpleRPG.Core.Entities.Enemies
             Description = "King Slime Description";
             Level = level;
             Property = property;
+            Target = TargetEnum.SecondLast;
             ApplyLevelGrowth();
         }
 

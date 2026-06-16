@@ -1,3 +1,5 @@
+using SimpleRPG.Core.Enums;
+
 namespace SimpleRPG.Core.Entities.Heroes
 {
     internal class MarcoHero : Entity
@@ -7,6 +9,8 @@ namespace SimpleRPG.Core.Entities.Heroes
             Name = "Marco";
             Description = "Marco Description";
             Level = level;
+            Property = PropertyEnum.Dark;
+            Target = TargetEnum.First;
             ApplyLevelGrowth();
         }
 

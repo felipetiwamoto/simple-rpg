@@ -10,6 +10,7 @@ namespace SimpleRPG.Core.Entities.Enemies
             Description = "Skeleton Description";
             Level = level;
             Property = property;
+            Target = TargetEnum.SecondLast;
             ApplyLevelGrowth();
         }
 

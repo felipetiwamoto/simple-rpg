@@ -1,4 +1,5 @@
 using SimpleRPG.Core.Entities;
+using SimpleRPG.Core.Enums;
 
 namespace SimpleRPG.Core.Fight
 {
@@ -25,8 +26,56 @@ namespace SimpleRPG.Core.Fight
 
         public void PrintMenu(bool reverse = false)
         {
+            if (reverse) PrintMenuEnemies();
+            else PrintMenuHeroes();
+        }
+
+        public void PrintMenuHeroes()
+        {
+            for (int i = 0; i < 9; i++)
+            {
+                int currentLine = 1 + i * 3;
+
+                Console.SetCursorPosition(0, currentLine);
+                Console.Write($"|{new string(' ', MenuWidth)}|");
+
+                Console.SetCursorPosition(0, currentLine + 1);
+                Console.Write($"|{new string(' ', MenuWidth)}|");
+
+                Console.SetCursorPosition(0, currentLine + 2);
+                Console.Write(new string('-', MenuWidth + 2));
+
+                EntityInBoard? entityInBoard = i < EntitiesInBoard.Length ? EntitiesInBoard[i] : null;
+
+                if (entityInBoard is not null)
+                {
+                    Entity entity = entityInBoard.Entity;
+                    string entityName = FitText(entity.Name, MenuWidth - 8);
+                    string entityInfo = FormatEntityInfo(entity);
+                    string hp = $"{entity.CurrentHp}/{entity.FinalStats.MaxHp}";
+
+                    ConsoleColor previousColor = Console.ForegroundColor;
+                    if (HoveringEntity?.Entity == entity) Console.ForegroundColor = ConsoleColor.Green;
+
+                    PrintEntityInfo(entity, MenuWidth - entityInfo.Length + 1, currentLine - 1);
+
+                    Console.SetCursorPosition(2, currentLine);
+                    Console.Write(entityName);
+
+                    //PrintEntityInfo(entity, MenuWidth - entityInfo.Length, currentLine);
+
+                    Console.SetCursorPosition(2, currentLine + 1);
+                    Console.Write(hp);
+
+                    Console.ForegroundColor = previousColor;
+                }
+            }
+        }
+
+        public void PrintMenuEnemies()
+        {
             const int panelWidth = 100;
-            int menuStartColumn = reverse ? panelWidth - MenuWidth - 2 : 0;
+            int menuStartColumn = panelWidth - MenuWidth - 2;
 
             for (int i = 0; i < 9; i++)
             {
@@ -46,21 +95,20 @@ namespace SimpleRPG.Core.Fight
                 if (entityInBoard is not null)
                 {
                     Entity entity = entityInBoard.Entity;
+                    string entityInfo = FormatEntityInfo(entity);
+                    string entityName = FitText(entity.Name, MenuWidth - 8);
                     string hp = $"{entity.CurrentHp}/{entity.FinalStats.MaxHp}";
-                    int nameColumn = reverse
-                        ? menuStartColumn + MenuWidth - entity.Name.Length
-                        : menuStartColumn + 2;
-                    int hpColumn = reverse
-                        ? menuStartColumn + MenuWidth - hp.Length
-                        : menuStartColumn + 2;
 
                     ConsoleColor previousColor = Console.ForegroundColor;
                     if (HoveringEntity?.Entity == entity) Console.ForegroundColor = ConsoleColor.Green;
 
-                    Console.SetCursorPosition(nameColumn, currentLine);
-                    Console.Write(entity.Name);
+                    Console.SetCursorPosition(menuStartColumn + 2, currentLine);
+                    PrintEntityInfo(entity, menuStartColumn + 1, currentLine - 1);
 
-                    Console.SetCursorPosition(hpColumn, currentLine + 1);
+                    Console.SetCursorPosition(menuStartColumn + MenuWidth - entityName.Length, currentLine);
+                    Console.Write(entityName);
+
+                    Console.SetCursorPosition(menuStartColumn + MenuWidth - hp.Length, currentLine + 1);
                     Console.Write(hp);
 
                     Console.ForegroundColor = previousColor;
@@ -70,9 +118,14 @@ namespace SimpleRPG.Core.Fight
 
         public void PrintSubMenu(bool reverse = false)
         {
-            const int panelWidth = 100;
+            if (reverse) PrintSubMenuEnemies();
+            else PrintSubMenuHeroes();
+        }
+
+        public void PrintSubMenuHeroes()
+        {
             const int gap = 1;
-            int subMenuStartColumn = reverse ? panelWidth - (MenuWidth + 2) * 2 - gap : MenuWidth + 2 + gap;
+            int subMenuStartColumn = MenuWidth + 2 + gap;
             Costume[] costumes = HoveringEntity?.Entity.Costumes ?? Array.Empty<Costume>();
 
             for (int i = 0; i < 6; i++)
@@ -96,20 +149,57 @@ namespace SimpleRPG.Core.Fight
                         ? costume.Name[..15]
                         : costume.Name;
                     string cost = $"SP: {costume.Cost}";
-                    int nameColumn = reverse
-                        ? subMenuStartColumn + MenuWidth - costumeName.Length
-                        : subMenuStartColumn + 2;
-                    int costColumn = reverse
-                        ? subMenuStartColumn + MenuWidth - cost.Length
-                        : subMenuStartColumn + 2;
 
                     ConsoleColor previousColor = Console.ForegroundColor;
                     if (HoveringCostume == costume) Console.ForegroundColor = ConsoleColor.Green;
 
-                    Console.SetCursorPosition(nameColumn, currentLine);
+                    Console.SetCursorPosition(subMenuStartColumn + 2, currentLine);
                     Console.Write(costumeName);
 
-                    Console.SetCursorPosition(costColumn, currentLine + 1);
+                    Console.SetCursorPosition(subMenuStartColumn + 2, currentLine + 1);
+                    Console.Write(cost);
+
+                    Console.ForegroundColor = previousColor;
+                }
+            }
+        }
+
+        public void PrintSubMenuEnemies()
+        {
+            const int panelWidth = 100;
+            const int gap = 1;
+            int subMenuStartColumn = panelWidth - (MenuWidth + 2) * 2 - gap;
+            Costume[] costumes = HoveringEntity?.Entity.Costumes ?? Array.Empty<Costume>();
+
+            for (int i = 0; i < 6; i++)
+            {
+                int currentLine = 1 + i * 3;
+
+                Console.SetCursorPosition(subMenuStartColumn, currentLine);
+                Console.Write($"|{new string(' ', MenuWidth)}|");
+
+                Console.SetCursorPosition(subMenuStartColumn, currentLine + 1);
+                Console.Write($"|{new string(' ', MenuWidth)}|");
+
+                Console.SetCursorPosition(subMenuStartColumn, currentLine + 2);
+                Console.Write(new string('-', MenuWidth + 2));
+
+                Costume? costume = i < costumes.Length ? costumes[i] : null;
+
+                if (costume is not null)
+                {
+                    string costumeName = costume.Name.Length > 15
+                        ? costume.Name[..15]
+                        : costume.Name;
+                    string cost = $"SP: {costume.Cost}";
+
+                    ConsoleColor previousColor = Console.ForegroundColor;
+                    if (HoveringCostume == costume) Console.ForegroundColor = ConsoleColor.Green;
+
+                    Console.SetCursorPosition(subMenuStartColumn + 2, currentLine);
+                    Console.Write(costumeName);
+
+                    Console.SetCursorPosition(subMenuStartColumn + 2, currentLine + 1);
                     Console.Write(cost);
 
                     Console.ForegroundColor = previousColor;
@@ -119,21 +209,30 @@ namespace SimpleRPG.Core.Fight
 
         public void PrintTerrain(bool reverse = false)
         {
+            if (reverse) PrintTerrainEnemies();
+            else PrintTerrainHeroes();
+        }
+
+        public void PrintTerrainHeroes()
+        {
             const int panelWidth = 100;
             const int enemiesSpLine = 2;
             int enemyBoardStartLine = enemiesSpLine + 2;
             int heroBoardStartLine = enemyBoardStartLine + Rows + 1;
             int heroesSpLine = heroBoardStartLine + Rows + 1;
 
-            if (reverse)
-            {
-                PrintCenteredText($"Enemies SP: {CurrentSp}/{MaxSp}", enemiesSpLine, panelWidth);
-                PrintBoard(enemyBoardStartLine, panelWidth, reverse: true);
-                return;
-            }
-
             PrintBoard(heroBoardStartLine, panelWidth);
             PrintCenteredText($"Heroes SP: {CurrentSp}/{MaxSp}", heroesSpLine, panelWidth);
+        }
+
+        public void PrintTerrainEnemies()
+        {
+            const int panelWidth = 100;
+            const int enemiesSpLine = 2;
+            int enemyBoardStartLine = enemiesSpLine + 2;
+
+            PrintCenteredText($"Enemies SP: {CurrentSp}/{MaxSp}", enemiesSpLine, panelWidth);
+            PrintBoard(enemyBoardStartLine, panelWidth, reverse: true);
         }
 
         private void PrintBoard(
@@ -178,6 +277,45 @@ namespace SimpleRPG.Core.Fight
 
             Console.SetCursorPosition(column, line);
             Console.Write(text);
+        }
+
+        private static string FormatEntityInfo(Entity entity)
+        {
+            //return $"({entity.Property.ToString()[0]},{entity.Target.ToString()[0]})";
+            return $"({entity.Target.ToString()})";
+        }
+
+        private static void PrintEntityInfo(Entity entity, int column, int line)
+        {
+            ConsoleColor previousColor = Console.ForegroundColor;
+
+            Console.ForegroundColor = GetPropertyColor(entity.Property, previousColor);
+            Console.SetCursorPosition(column, line);
+            Console.Write(FormatEntityInfo(entity));
+            Console.ForegroundColor = previousColor;
+        }
+
+        private static ConsoleColor GetPropertyColor(
+            PropertyEnum property,
+            ConsoleColor defaultColor)
+        {
+            return property switch
+            {
+                PropertyEnum.Fire => ConsoleColor.Red,
+                PropertyEnum.Water => ConsoleColor.Blue,
+                PropertyEnum.Air => ConsoleColor.DarkGreen,
+                PropertyEnum.Light => ConsoleColor.Yellow,
+                PropertyEnum.Dark => ConsoleColor.Magenta,
+                PropertyEnum.Neutral => ConsoleColor.White,
+                _ => defaultColor
+            };
+        }
+
+        private static string FitText(string text, int width)
+        {
+            return text.Length > width
+                ? text[..width]
+                : text;
         }
     }
 }

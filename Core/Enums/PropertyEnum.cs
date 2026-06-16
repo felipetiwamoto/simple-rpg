@@ -5,7 +5,7 @@ namespace SimpleRPG.Core.Enums
         Neutral,
         Fire,
         Water,
-        Wind,
+        Air,
         Light,
         Dark
     }

@@ -1,3 +1,5 @@
+using SimpleRPG.Core.Enums;
+
 namespace SimpleRPG.Core.Entities.Heroes
 {
     internal class EthanHero : Entity
@@ -7,6 +9,8 @@ namespace SimpleRPG.Core.Entities.Heroes
             Name = "Ethan";
             Description = "A brave warrior with a strong sense of justice.";
             Level = level;
+            Property = PropertyEnum.Fire;
+            Target = TargetEnum.First;
             ApplyLevelGrowth();
         }
         public override void ApplyLevelGrowth()

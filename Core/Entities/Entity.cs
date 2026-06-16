@@ -11,6 +11,7 @@ namespace SimpleRPG.Core.Entities
         public int CurrentHp { get; set; }
         public Costume[] Costumes { get; set; } = Array.Empty<Costume>();
         public PropertyEnum Property { get; set; } = PropertyEnum.Neutral;
+        public TargetEnum Target { get; set; } = TargetEnum.First;
         public EntityStats BaseStats { get; } = new();
         public EntityStats FinalStats { get; } = new();
         public Equip[] Equips { get; protected set; } = Array.Empty<Equip>();
