@@ -1,4 +1,3 @@
-using System.Text;
 using SimpleRPG.Core.Entities;
 
 namespace SimpleRPG.Core.Fight
@@ -64,6 +63,13 @@ namespace SimpleRPG.Core.Fight
 
             if (this.EnemiesBoard.HoveringEntity is not null)
                 this.EnemiesBoard.PrintSubMenu(reverse: true);
+
+            if (this.HeroesBoard.HoveringCostume is not null)
+                this.HeroesBoard.PrintInfoCostume();
+            else if (this.EnemiesBoard.HoveringCostume is not null)
+                this.EnemiesBoard.PrintInfoCostume();
+            else
+                this.PrintInfoDefault();
         }
 
         public void ProcessKey()
@@ -91,8 +97,10 @@ namespace SimpleRPG.Core.Fight
                 if (Key == ConsoleKey.Enter)
                 {
                     this.selectedMenu = "HEROES_SUBMENU";
+                    this.HeroesBoard.SelectedEntity = this.HeroesBoard.HoveringEntity;
                     this.HeroesBoard.HoveringCostume =
-                        this.HeroesBoard.HoveringEntity?.Entity.Costumes.FirstOrDefault();
+                        this.HeroesBoard.SelectedEntity?.Entity.Costumes.FirstOrDefault();
+                    this.HeroesBoard.DetectTarget(this.EnemiesBoard);
                 }
                 if (Key == ConsoleKey.Backspace) ResetMenus();
             }
@@ -167,6 +175,8 @@ namespace SimpleRPG.Core.Fight
             this.EnemiesBoard.HoveringCostume = null;
             this.HeroesBoard.SelectedEntity = null;
             this.EnemiesBoard.SelectedEntity = null;
+            this.HeroesBoard.InRange = null;
+            this.EnemiesBoard.InRange = null;
         }
         public void PrintEdges()
         {

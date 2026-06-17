@@ -1,3 +1,4 @@
+using System.Text;
 using SimpleRPG.Core.Entities;
 using SimpleRPG.Core.Enums;
 
@@ -220,8 +221,38 @@ namespace SimpleRPG.Core.Fight
             int enemyBoardStartLine = enemiesSpLine + 2;
             int heroBoardStartLine = enemyBoardStartLine + Rows + 1;
             int heroesSpLine = heroBoardStartLine + Rows + 1;
+            int boardWidth = Columns * 3;
+            int boardStartColumn = (panelWidth - boardWidth) / 2;
 
-            PrintBoard(heroBoardStartLine, panelWidth);
+            for (int displayRow = 0; displayRow < Rows; displayRow++)
+            {
+                int sourceRow = displayRow;
+
+                for (int displayColumn = 0; displayColumn < Columns; displayColumn++)
+                {
+                    int sourceColumn = displayColumn;
+                    EntityInBoard? entityInBoard = EntitiesInBoard.FirstOrDefault(entityInBoard =>
+                        entityInBoard.Row == sourceRow && entityInBoard.Col == sourceColumn);
+                    bool isHoveringEntity = entityInBoard is not null && HoveringEntity == entityInBoard;
+                    bool isInRange = InRange.Any(position =>
+                        position.Length >= 2
+                        && position[0] == sourceRow
+                        && position[1] == sourceColumn);
+                    string cell = entityInBoard is not null ? "[o]" : "[ ]";
+                    ConsoleColor previousColor = Console.ForegroundColor;
+
+                    if (isInRange) Console.ForegroundColor = ConsoleColor.Red;
+                    else if (isHoveringEntity) Console.ForegroundColor = ConsoleColor.Green;
+
+                    Console.SetCursorPosition(
+                        boardStartColumn + displayColumn * 3,
+                        heroBoardStartLine + displayRow);
+                    Console.Write(cell);
+
+                    Console.ForegroundColor = previousColor;
+                }
+            }
+
             PrintCenteredText($"Heroes SP: {CurrentSp}/{MaxSp}", heroesSpLine, panelWidth);
         }
 
@@ -230,37 +261,34 @@ namespace SimpleRPG.Core.Fight
             const int panelWidth = 100;
             const int enemiesSpLine = 2;
             int enemyBoardStartLine = enemiesSpLine + 2;
-
-            PrintCenteredText($"Enemies SP: {CurrentSp}/{MaxSp}", enemiesSpLine, panelWidth);
-            PrintBoard(enemyBoardStartLine, panelWidth, reverse: true);
-        }
-
-        private void PrintBoard(
-            int startLine,
-            int panelWidth,
-            bool reverse = false)
-        {
             int boardWidth = Columns * 3;
             int boardStartColumn = (panelWidth - boardWidth) / 2;
 
+            PrintCenteredText($"Enemies SP: {CurrentSp}/{MaxSp}", enemiesSpLine, panelWidth);
+
             for (int displayRow = 0; displayRow < Rows; displayRow++)
             {
-                int sourceRow = reverse ? Rows - 1 - displayRow : displayRow;
+                int sourceRow = Rows - 1 - displayRow;
 
                 for (int displayColumn = 0; displayColumn < Columns; displayColumn++)
                 {
-                    int sourceColumn = reverse ? Columns - 1 - displayColumn : displayColumn;
+                    int sourceColumn = displayColumn;
                     EntityInBoard? entityInBoard = EntitiesInBoard.FirstOrDefault(entityInBoard =>
                         entityInBoard.Row == sourceRow && entityInBoard.Col == sourceColumn);
                     bool isHoveringEntity = entityInBoard is not null && HoveringEntity == entityInBoard;
+                    bool isInRange = InRange.Any(position =>
+                        position.Length >= 2
+                        && position[0] == sourceRow
+                        && position[1] == sourceColumn);
                     string cell = entityInBoard is not null ? "[o]" : "[ ]";
                     ConsoleColor previousColor = Console.ForegroundColor;
 
-                    if (isHoveringEntity) Console.ForegroundColor = ConsoleColor.Green;
+                    if (isInRange) Console.ForegroundColor = ConsoleColor.Red;
+                    else if (isHoveringEntity) Console.ForegroundColor = ConsoleColor.Green;
 
                     Console.SetCursorPosition(
                         boardStartColumn + displayColumn * 3,
-                        startLine + displayRow);
+                        enemyBoardStartLine + displayRow);
                     Console.Write(cell);
 
                     Console.ForegroundColor = previousColor;
@@ -317,174 +345,306 @@ namespace SimpleRPG.Core.Fight
                 ? text[..width]
                 : text;
         }
+        public void PrintInfoCostume()
+        {
+            if (HoveringCostume is null) return;
+
+            const int startColumn = 22;
+            const int titleLine = 20;
+            const int contentStartLine = 22;
+            const int rangeColumn = 22;
+            const int infoEndColumn = 78;
+            const int contentLines = 6;
+
+            Costume costume = HoveringCostume;
+            string title = FitText(
+                $"{costume.Name} - SP: {costume.Cost}",
+                56);
+            string[] rangeLines = FormatRange(costume.Range);
+            int rangeWidth = rangeLines.Length == 0
+                ? 0
+                : rangeLines.Max(line => line.Length);
+            int descriptionColumn = rangeColumn + rangeWidth + 1;
+            int descriptionWidth = infoEndColumn - descriptionColumn;
+            string[] descriptionLines = WrapText(
+                costume.Description,
+                descriptionWidth,
+                contentLines);
+
+            Console.SetCursorPosition(startColumn, titleLine);
+            Console.Write(title);
+
+            for (int i = 0; i < contentLines; i++)
+            {
+                int currentLine = contentStartLine + i;
+
+                if (i < rangeLines.Length)
+                {
+                    Console.SetCursorPosition(rangeColumn, currentLine);
+                    Console.Write(rangeLines[i]);
+                }
+
+                if (i < descriptionLines.Length)
+                {
+                    Console.SetCursorPosition(descriptionColumn, currentLine);
+                    Console.Write(descriptionLines[i]);
+                }
+            }
+        }
+
+        private static string[] FormatRange(int[][] range)
+        {
+            return range
+                .Select(row => string.Concat(row.Select(value => value switch
+                {
+                    1 => "[x]",
+                    2 => "[X]",
+                    _ => "[ ]"
+                }))).ToArray();
+        }
+
+        private static string[] WrapText(string text, int width, int maximumLines)
+        {
+            if (string.IsNullOrWhiteSpace(text) || width <= 0) return Array.Empty<string>();
+
+            List<string> lines = new();
+            string[] words = text.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            StringBuilder currentLine = new();
+
+            foreach (string word in words)
+            {
+                if (currentLine.Length == 0) currentLine.Append(word);
+                else if (currentLine.Length + 1 + word.Length <= width) currentLine.Append(' ').Append(word);
+                else
+                {
+                    lines.Add(FitText(currentLine.ToString(), width));
+                    currentLine.Clear();
+                    currentLine.Append(word);
+                }
+
+                if (lines.Count == maximumLines) return lines.ToArray();
+            }
+
+            if (currentLine.Length > 0 && lines.Count < maximumLines) lines.Add(FitText(currentLine.ToString(), width));
+
+            return lines.ToArray();
+        }
+        public EntityInBoard? DetectTarget(Board opponentBoard)
+        {
+            EntityInBoard[] onlyOneLeft = opponentBoard.EntitiesInBoard.Where(e => e.Entity.CurrentHp > 0).ToArray();
+            if (onlyOneLeft.Length == 1)
+            {
+                opponentBoard.InRange = new[] { new[] { onlyOneLeft[0].Row, onlyOneLeft[0].Col } };
+                return onlyOneLeft[0];
+            }
+
+            EntityInBoard? target = this.SelectedEntity?.Entity.Target switch
+            {
+                TargetEnum.First => this.DetectTargetFirst(opponentBoard),
+                TargetEnum.Next => this.DetectTargetNext(opponentBoard),
+                TargetEnum.Last => this.DetectTargetLast(opponentBoard),
+                TargetEnum.SecondLast => this.DetectTargetSecondLast(opponentBoard),
+                _ => null
+            };
+
+            if (target is not null)
+            {
+                opponentBoard.InRange = new[] { new[] { target.Row, target.Col } };
+                return target;
+            }
+
+            return null;
+        }
+
+        public EntityInBoard? DetectTargetFirst(Board opponentBoard)
+        {
+            if (this.SelectedEntity is null) return null;
+
+            int mid = this.SelectedEntity.Col;
+            int left = this.SelectedEntity.Col - 1;
+            int right = this.SelectedEntity.Col + 1;
+
+            EntityInBoard? midTarget = opponentBoard.EntitiesInBoard
+                .Where(e => e.Col == mid && e.Entity.CurrentHp > 0)
+                .OrderBy(e => e.Row)
+                .FirstOrDefault();
+            if (midTarget is not null) return midTarget;
+
+            while (left >= 0 || right <= opponentBoard.Columns - 1)
+            {
+                if (right <= opponentBoard.Columns - 1)
+                {
+                    EntityInBoard? target = opponentBoard.EntitiesInBoard
+                        .Where(e => e.Col == right && e.Entity.CurrentHp > 0)
+                        .OrderBy(e => e.Row)
+                        .FirstOrDefault();
+                    if (target is not null) return target;
+                }
+                if (left >= 0)
+                {
+                    EntityInBoard? target = opponentBoard.EntitiesInBoard
+                        .Where(e => e.Col == left && e.Entity.CurrentHp > 0)
+                        .OrderBy(e => e.Row)
+                        .FirstOrDefault();
+                    if (target is not null) return target;
+                }
+                left--; right++;
+            }
+
+            return null;
+        }
+
+        public EntityInBoard? DetectTargetLast(Board opponentBoard)
+        {
+            if (this.SelectedEntity is null) return null;
+
+            int mid = this.SelectedEntity.Col;
+            int left = this.SelectedEntity.Col - 1;
+            int right = this.SelectedEntity.Col + 1;
+
+            EntityInBoard? midTarget = opponentBoard.EntitiesInBoard
+                .Where(e => e.Col == mid && e.Entity.CurrentHp > 0)
+                .OrderByDescending(e => e.Row)
+                .FirstOrDefault();
+            if (midTarget is not null) return midTarget;
+
+            while (left >= 0 || right <= opponentBoard.Columns - 1)
+            {
+                if (right <= opponentBoard.Columns - 1)
+                {
+                    EntityInBoard? target = opponentBoard.EntitiesInBoard
+                        .Where(e => e.Col == right && e.Entity.CurrentHp > 0)
+                        .OrderByDescending(e => e.Row)
+                        .FirstOrDefault();
+                    if (target is not null) return target;
+                }
+                if (left >= 0)
+                {
+                    EntityInBoard? target = opponentBoard.EntitiesInBoard
+                        .Where(e => e.Col == left && e.Entity.CurrentHp > 0)
+                        .OrderByDescending(e => e.Row)
+                        .FirstOrDefault();
+                    if (target is not null) return target;
+                }
+                left--; right++;
+            }
+
+            return null;
+        }
+        public EntityInBoard? DetectTargetNext(Board opponentBoard)
+        {
+            if (this.SelectedEntity is null) return null;
+
+            int mid = this.SelectedEntity.Col;
+            int left = this.SelectedEntity.Col - 1;
+            int right = this.SelectedEntity.Col + 1;
+
+            EntityInBoard[] midTargets = opponentBoard.EntitiesInBoard
+                .Where(e => e.Col == mid && e.Entity.CurrentHp > 0)
+                .OrderBy(e => e.Row)
+                .ToArray();
+
+            if (midTargets.Length > 0)
+            {
+                return midTargets.Length >= 2
+                    ? midTargets[1]
+                    : midTargets[0];
+            }
+
+            while (left >= 0 || right <= opponentBoard.Columns - 1)
+            {
+                if (right <= opponentBoard.Columns - 1)
+                {
+                    EntityInBoard[] targets = opponentBoard.EntitiesInBoard
+                        .Where(e => e.Col == right && e.Entity.CurrentHp > 0)
+                        .OrderBy(e => e.Row)
+                        .ToArray();
+
+                    if (targets.Length > 0)
+                    {
+                        return targets.Length >= 2
+                            ? targets[1]
+                            : targets[0];
+                    }
+                }
+
+                if (left >= 0)
+                {
+                    EntityInBoard[] targets = opponentBoard.EntitiesInBoard
+                        .Where(e => e.Col == left && e.Entity.CurrentHp > 0)
+                        .OrderBy(e => e.Row)
+                        .ToArray();
+
+                    if (targets.Length > 0)
+                    {
+                        return targets.Length >= 2
+                            ? targets[1]
+                            : targets[0];
+                    }
+                }
+
+                left--; right++;
+            }
+
+            return null;
+        }
+
+        public EntityInBoard? DetectTargetSecondLast(Board opponentBoard)
+        {
+            if (this.SelectedEntity is null) return null;
+
+            int mid = this.SelectedEntity.Col;
+            int left = this.SelectedEntity.Col - 1;
+            int right = this.SelectedEntity.Col + 1;
+
+            EntityInBoard[] midTargets = opponentBoard.EntitiesInBoard
+                .Where(e => e.Col == mid && e.Entity.CurrentHp > 0)
+                .OrderByDescending(e => e.Row)
+                .ToArray();
+
+            if (midTargets.Length > 0)
+            {
+                return midTargets.Length >= 2
+                    ? midTargets[1]
+                    : midTargets[0];
+            }
+
+            while (left >= 0 || right <= opponentBoard.Columns - 1)
+            {
+                if (right <= opponentBoard.Columns - 1)
+                {
+                    EntityInBoard[] targets = opponentBoard.EntitiesInBoard
+                        .Where(e => e.Col == right && e.Entity.CurrentHp > 0)
+                        .OrderByDescending(e => e.Row)
+                        .ToArray();
+
+                    if (targets.Length > 0)
+                    {
+                        return targets.Length >= 2
+                            ? targets[1]
+                            : targets[0];
+                    }
+                }
+
+                if (left >= 0)
+                {
+                    EntityInBoard[] targets = opponentBoard.EntitiesInBoard
+                        .Where(e => e.Col == left && e.Entity.CurrentHp > 0)
+                        .OrderByDescending(e => e.Row)
+                        .ToArray();
+
+                    if (targets.Length > 0)
+                    {
+                        return targets.Length >= 2
+                            ? targets[1]
+                            : targets[0];
+                    }
+                }
+
+                left--; right++;
+            }
+
+            return null;
+        }
     }
 }
-
-
-//using SimpleRPG.Core.Entities;
-
-//namespace SimpleRPG.Core.Fight
-//{
-//    internal class Board
-//    {
-//        public const int MenuWidth = 17;
-
-//        public int Rows { get; set; }
-//        public int Columns { get; set; }
-//        public int CurrentSp { get; set; } = 20;
-//        public int MaxSp { get; set; } = 20;
-//        public int[][] InRange { get; set; } = Array.Empty<int[]>();
-//        public EntityInBoard? SelectedEntity { get; set; }
-//        public EntityInBoard[] EntitiesInBoard { get; set; }
-
-//        public Board(int rows, int columns, EntityInBoard[] entitiesInBoard)
-//        {
-//            Rows = rows;
-//            Columns = columns;
-//            EntitiesInBoard = entitiesInBoard;
-//        }
-
-//        public BattleRenderLine[] PrintMenu(bool reverse = false)
-//        {
-//            List<BattleRenderLine> menuLines = new();
-
-//            foreach (EntityInBoard entityInBoard in EntitiesInBoard)
-//            {
-//                bool isSelected = ReferenceEquals(entityInBoard, SelectedEntity);
-//                string name = FitText(entityInBoard.Entity.Name, MenuWidth - 1);
-//                string hp =
-//                    $"{entityInBoard.Entity.CurrentHp}/{entityInBoard.Entity.FinalStats.MaxHp}";
-
-//                string nameLine = AlignText(name, reverse);
-//                string hpLine = AlignText(hp, reverse);
-//                int nameStart = reverse
-//                    ? MenuWidth - name.Length
-//                    : 0;
-
-//                menuLines.Add(isSelected
-//                    ? new BattleRenderLine(
-//                        nameLine,
-//                        new TextHighlight(nameStart, name.Length))
-//                    : new BattleRenderLine(nameLine));
-//                menuLines.Add(new BattleRenderLine(hpLine));
-//                menuLines.Add(new BattleRenderLine(
-//                    new string('-', MenuWidth + 1)));
-//            }
-
-//            return menuLines.ToArray();
-//        }
-
-//        public BattleRenderLine[] PrintSubMenu(
-//            int selectedCostumeIndex,
-//            bool reverse = false)
-//        {
-//            if (SelectedEntity is null)
-//            {
-//                return Array.Empty<BattleRenderLine>();
-//            }
-
-//            Costume[] costumes = SelectedEntity.Entity.Costumes;
-
-//            if (costumes.Length == 0)
-//            {
-//                return
-//                [
-//                    new BattleRenderLine(AlignText("No costumes", reverse))
-//                ];
-//            }
-
-//            List<BattleRenderLine> subMenuLines = new();
-
-//            for (int index = 0; index < costumes.Length; index++)
-//            {
-//                Costume costume = costumes[index];
-//                string name = FitText(costume.Name, MenuWidth - 1);
-//                string nameLine = AlignText(name, reverse);
-//                string spLine = AlignText($"SP: {costume.Cost}", reverse);
-//                int nameStart = reverse
-//                    ? MenuWidth - name.Length
-//                    : 0;
-
-//                subMenuLines.Add(index == selectedCostumeIndex
-//                    ? new BattleRenderLine(
-//                        nameLine,
-//                        new TextHighlight(nameStart, name.Length))
-//                    : new BattleRenderLine(nameLine));
-//                subMenuLines.Add(new BattleRenderLine(spLine));
-//                subMenuLines.Add(new BattleRenderLine(
-//                    new string('-', MenuWidth + 1)));
-//            }
-
-//            return subMenuLines.ToArray();
-//        }
-
-//        public Dictionary<int, BattleRenderLine> PrintTerrain(
-//            int boardStartRow,
-//            int spRow,
-//            bool reverse = false)
-//        {
-//            Dictionary<int, BattleRenderLine> terrainLines = new();
-//            string teamName = reverse ? "Enemies" : "Heroes";
-
-//            terrainLines[spRow] = new BattleRenderLine(
-//                $"{teamName} SP: {CurrentSp}/{MaxSp}");
-
-//            HashSet<(int Row, int Col)> occupiedPositions = EntitiesInBoard
-//                .Select(entityInBoard => (entityInBoard.Row, entityInBoard.Col))
-//                .ToHashSet();
-
-//            for (int displayRow = 0; displayRow < Rows; displayRow++)
-//            {
-//                int sourceRow = reverse
-//                    ? Rows - 1 - displayRow
-//                    : displayRow;
-//                string boardRow = string.Empty;
-//                List<TextHighlight> highlights = new();
-
-//                for (int displayColumn = 0;
-//                    displayColumn < Columns;
-//                    displayColumn++)
-//                {
-//                    int sourceColumn = reverse
-//                        ? Columns - 1 - displayColumn
-//                        : displayColumn;
-//                    bool isOccupied =
-//                        occupiedPositions.Contains((sourceRow, sourceColumn));
-//                    bool isSelected =
-//                        SelectedEntity?.Row == sourceRow
-//                        && SelectedEntity.Col == sourceColumn;
-
-//                    int cellStart = boardRow.Length;
-//                    boardRow += isOccupied ? "[o]" : "[ ]";
-
-//                    if (isSelected)
-//                    {
-//                        highlights.Add(new TextHighlight(cellStart, 3));
-//                    }
-//                }
-
-//                terrainLines[boardStartRow + displayRow] =
-//                    new BattleRenderLine(boardRow, highlights.ToArray());
-//            }
-
-//            return terrainLines;
-//        }
-
-//        private static string AlignText(string text, bool reverse)
-//        {
-//            const int contentWidth = MenuWidth - 1;
-//            string visibleText = FitText(text, contentWidth);
-
-//            return reverse
-//                ? $"|{visibleText.PadLeft(contentWidth)}"
-//                : $"{visibleText.PadRight(contentWidth)}|";
-//        }
-
-//        private static string FitText(string text, int width)
-//        {
-//            return text.Length > width
-//                ? text[..width]
-//                : text;
-//        }
-//    }
-//}

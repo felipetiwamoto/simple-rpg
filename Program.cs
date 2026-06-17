@@ -34,14 +34,14 @@ Entity dragonFire = new DragonEnemy(85, PropertyEnum.Fire);
 Entity skeletonFire = new SkeletonEnemy(75, PropertyEnum.Fire);
 
 EntityInBoard[] enemiesInBoard = {
-    new EntityInBoard(orcWater, 0, 0),
-    new EntityInBoard(orcNeutral, 1, 0),
-    new EntityInBoard(orcFire, 2, 0),
+    //new EntityInBoard(orcFire, 2, 0),
+    //new EntityInBoard(orcNeutral, 1, 0),
+    //new EntityInBoard(orcWater, 0, 0),
     new EntityInBoard(dragonWater, 1, 1),
-    new EntityInBoard(dragonNeutral, 2, 1),
     new EntityInBoard(dragonFire, 3, 1),
+    new EntityInBoard(dragonNeutral, 2, 1),
+    new EntityInBoard(skeletonNeutral, 0, 1),
     new EntityInBoard(skeletonWater, 0, 2),
-    new EntityInBoard(skeletonNeutral, 1, 2),
     new EntityInBoard(skeletonFire, 3, 2),
 };
 Board enemiesBoard = new Board(4, 3, enemiesInBoard);

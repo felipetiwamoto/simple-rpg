@@ -10,7 +10,7 @@ namespace SimpleRPG.Core.Entities.Heroes
             Description = "Vivian Description";
             Level = level;
             Property = PropertyEnum.Light;
-            Target = TargetEnum.Last;
+            Target = TargetEnum.SecondLast;
             ApplyLevelGrowth();
         }
 
