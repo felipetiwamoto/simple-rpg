@@ -432,11 +432,7 @@ namespace SimpleRPG.Core.Fight
         public EntityInBoard? DetectTarget(Board opponentBoard)
         {
             EntityInBoard[] onlyOneLeft = opponentBoard.EntitiesInBoard.Where(e => e.Entity.CurrentHp > 0).ToArray();
-            if (onlyOneLeft.Length == 1)
-            {
-                opponentBoard.InRange = new[] { new[] { onlyOneLeft[0].Row, onlyOneLeft[0].Col } };
-                return onlyOneLeft[0];
-            }
+            if (onlyOneLeft.Length == 1) return onlyOneLeft[0];
 
             EntityInBoard? target = this.SelectedEntity?.Entity.Target switch
             {
@@ -447,11 +443,7 @@ namespace SimpleRPG.Core.Fight
                 _ => null
             };
 
-            if (target is not null)
-            {
-                opponentBoard.InRange = new[] { new[] { target.Row, target.Col } };
-                return target;
-            }
+            if (target is not null) return target;
 
             return null;
         }
@@ -645,6 +637,49 @@ namespace SimpleRPG.Core.Fight
             }
 
             return null;
+        }
+        public int[][] CostumeRangeInBoard(int[] from, Costume costume, Board opponentBoard)
+        {
+            int[] costumeMaintarget = new[] { 0, 0 };
+            bool foundMainTarget = false;
+
+            for (int row = 0; row < costume.Range.Length; row++)
+            {
+                int reversedRow = costume.Range.Length - 1 - row;
+
+                for (int col = 0; col < costume.Range[reversedRow].Length; col++)
+                    if (costume.Range[reversedRow][col] == 2)
+                    {
+                        costumeMaintarget = new[] { row, col };
+                        foundMainTarget = true;
+                        break;
+                    }
+
+                if (foundMainTarget) break;
+            }
+
+            int firstRow = from[0] - costumeMaintarget[0];
+            int firstCol = from[1] - costumeMaintarget[1];
+            int[][] inRange = new int[][] { };
+
+            for (int row = 0; row < costume.Range.Length; row++)
+            {
+                int reversedRow = costume.Range.Length - 1 - row;
+
+                for (int col = 0; col < costume.Range[reversedRow].Length; col++)
+                    if (costume.Range[reversedRow][col] == 1 || costume.Range[reversedRow][col] == 2)
+                    {
+                        int targetRow = firstRow + row;
+                        int targetCol = firstCol + col;
+                        if (targetRow >= 0 && targetRow < opponentBoard.Rows
+                            && targetCol >= 0 && targetCol < opponentBoard.Columns)
+                        {
+                            inRange = inRange.Append(new[] { targetRow, targetCol }).ToArray();
+                        }
+                    }
+            }
+
+            return inRange;
         }
     }
 }

@@ -10,7 +10,7 @@ namespace SimpleRPG.Core.Entities.Heroes
             Description = "A brave warrior with a strong sense of justice.";
             Level = level;
             Property = PropertyEnum.Fire;
-            Target = TargetEnum.Next;
+            Target = TargetEnum.First;
             ApplyLevelGrowth();
         }
         public override void ApplyLevelGrowth()
