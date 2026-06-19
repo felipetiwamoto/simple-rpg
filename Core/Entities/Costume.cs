@@ -1,3 +1,5 @@
+using SimpleRPG.Core.Fight;
+
 namespace SimpleRPG.Core.Entities
 {
     internal abstract class Costume
@@ -10,6 +12,7 @@ namespace SimpleRPG.Core.Entities
         public int[][] Range { get; set; } = Array.Empty<int[]>();
         public EntityStats Stats { get; set; } = new();
 
+        public abstract void Run(Battle battle);
         public abstract void ApplyCopiesGrowth();
     }
 }

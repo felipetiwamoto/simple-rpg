@@ -1,3 +1,5 @@
+using SimpleRPG.Core.Fight;
+
 namespace SimpleRPG.Core.Entities.Heroes
 {
     internal class MariaCostume01 : Costume
@@ -17,6 +19,10 @@ namespace SimpleRPG.Core.Entities.Heroes
             };
             Stats.Atk = 200;
             ApplyCopiesGrowth();
+        }
+
+        public override void Run(Battle battle)
+        {
         }
 
         public override void ApplyCopiesGrowth()
