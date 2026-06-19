@@ -18,11 +18,13 @@ namespace SimpleRPG.Core.Fight
         public Costume? HoveringCostume { get; set; }
         public EntityInBoard[] EntitiesInBoard { get; set; }
 
-        public Board(int rows, int columns, EntityInBoard[] entitiesInBoard)
+        public Board(int rows, int columns, EntityInBoard[] entitiesInBoard, int maxSp)
         {
             Rows = rows;
             Columns = columns;
             EntitiesInBoard = entitiesInBoard;
+            MaxSp = maxSp;
+            CurrentSp = maxSp;
         }
 
         public void PrintMenu(bool reverse = false)
@@ -33,6 +35,10 @@ namespace SimpleRPG.Core.Fight
 
         public void PrintMenuHeroes()
         {
+            EntityInBoard[] entitiesByOrder = EntitiesInBoard
+                .OrderBy(entityInBoard => entityInBoard.Order)
+                .ToArray();
+
             for (int i = 0; i < 9; i++)
             {
                 int currentLine = 1 + i * 3;
@@ -46,7 +52,7 @@ namespace SimpleRPG.Core.Fight
                 Console.SetCursorPosition(0, currentLine + 2);
                 Console.Write(new string('-', MenuWidth + 2));
 
-                EntityInBoard? entityInBoard = i < EntitiesInBoard.Length ? EntitiesInBoard[i] : null;
+                EntityInBoard? entityInBoard = i < entitiesByOrder.Length ? entitiesByOrder[i] : null;
 
                 if (entityInBoard is not null)
                 {
@@ -150,9 +156,19 @@ namespace SimpleRPG.Core.Fight
                         ? costume.Name[..15]
                         : costume.Name;
                     string cost = $"SP: {costume.Cost}";
+                    string selectedTag = "(Selected)";
+                    bool isSelectedCostume = HoveringEntity?.SelectedCostume == costume;
 
                     ConsoleColor previousColor = Console.ForegroundColor;
                     if (HoveringCostume == costume) Console.ForegroundColor = ConsoleColor.Green;
+
+                    if (isSelectedCostume)
+                    {
+                        Console.SetCursorPosition(
+                            subMenuStartColumn + MenuWidth - selectedTag.Length + 1,
+                            currentLine - 1);
+                        Console.Write(selectedTag);
+                    }
 
                     Console.SetCursorPosition(subMenuStartColumn + 2, currentLine);
                     Console.Write(costumeName);
@@ -193,9 +209,17 @@ namespace SimpleRPG.Core.Fight
                         ? costume.Name[..15]
                         : costume.Name;
                     string cost = $"SP: {costume.Cost}";
+                    string selectedTag = "(Selected)";
+                    bool isSelectedCostume = HoveringEntity?.SelectedCostume == costume;
 
                     ConsoleColor previousColor = Console.ForegroundColor;
                     if (HoveringCostume == costume) Console.ForegroundColor = ConsoleColor.Green;
+
+                    if (isSelectedCostume)
+                    {
+                        Console.SetCursorPosition(subMenuStartColumn + 1, currentLine - 1);
+                        Console.Write(selectedTag);
+                    }
 
                     Console.SetCursorPosition(subMenuStartColumn + 2, currentLine);
                     Console.Write(costumeName);

@@ -13,11 +13,17 @@ namespace SimpleRPG.Core.Fight
         public Board EnemiesBoard { get; set; }
         public int Turn { get; set; } = 1;
         public string? Winner { get; set; }
+        public int MaxSp { get; set; }
 
-        public Battle(Board heroesBoard, Board enemiesBoard)
+        public Battle(Board heroesBoard, Board enemiesBoard, int maxSp)
         {
             HeroesBoard = heroesBoard;
             EnemiesBoard = enemiesBoard;
+            MaxSp = maxSp;
+            HeroesBoard.MaxSp = maxSp;
+            HeroesBoard.CurrentSp = maxSp;
+            EnemiesBoard.MaxSp = maxSp;
+            EnemiesBoard.CurrentSp = maxSp;
         }
 
         public void Run()
@@ -88,6 +94,7 @@ namespace SimpleRPG.Core.Fight
                     this.HeroesBoard.HoveringEntity = null;
                     this.EnemiesBoard.HoveringEntity = this.EnemiesBoard.EntitiesInBoard.FirstOrDefault();
                 }
+                return;
             }
 
             if (this.selectedMenu == "HEROES_MENU")
@@ -103,6 +110,7 @@ namespace SimpleRPG.Core.Fight
                     UpdateHeroesCostumeRange();
                 }
                 if (Key == ConsoleKey.Backspace) ResetMenus();
+                return;
             }
 
             if (this.selectedMenu == "HEROES_SUBMENU")
@@ -117,16 +125,25 @@ namespace SimpleRPG.Core.Fight
                     MoveHoveringCostume(this.HeroesBoard, 1);
                     UpdateHeroesCostumeRange();
                 }
-                if (Key == ConsoleKey.Enter) { }
+                if (Key == ConsoleKey.Enter)
+                {
+                    if (this.HeroesBoard.SelectedEntity is not null && this.HeroesBoard.HoveringCostume is not null)
+                    {
+                        this.HeroesBoard.SelectedEntity.SelectedCostume =
+                            this.HeroesBoard.SelectedEntity.SelectedCostume == this.HeroesBoard.HoveringCostume ? null : this.HeroesBoard.HoveringCostume;
+                        UpdateHeroesSp();
+                    }
+                }
                 if (Key == ConsoleKey.Backspace)
                 {
                     this.HeroesBoard.HoveringCostume = null;
                     this.EnemiesBoard.InRange = Array.Empty<int[]>();
                     this.selectedMenu = "HEROES_MENU";
                 }
+                return;
             }
-            if (this.selectedMenu == "HEROES_POSITION") { }
-            if (this.selectedMenu == "HEROES_ORDER") { }
+            if (this.selectedMenu == "HEROES_POSITION") { return; }
+            if (this.selectedMenu == "HEROES_ORDER") { return; }
 
             if (this.selectedMenu == "ENEMIES_MENU")
             {
@@ -139,6 +156,7 @@ namespace SimpleRPG.Core.Fight
                         this.EnemiesBoard.HoveringEntity?.Entity.Costumes.FirstOrDefault();
                 }
                 if (Key == ConsoleKey.Backspace) ResetMenus();
+                return;
             }
 
             if (this.selectedMenu == "ENEMIES_SUBMENU")
@@ -150,6 +168,7 @@ namespace SimpleRPG.Core.Fight
                     this.EnemiesBoard.HoveringCostume = null;
                     this.selectedMenu = "ENEMIES_MENU";
                 }
+                return;
             }
             //if (this.selectedMenu == "ENEMIES_POSITION") { }
             //if (this.selectedMenu == "ENEMIES_ORDER") { }
@@ -186,6 +205,16 @@ namespace SimpleRPG.Core.Fight
             this.EnemiesBoard.SelectedEntity = null;
             this.HeroesBoard.InRange = Array.Empty<int[]>();
             this.EnemiesBoard.InRange = Array.Empty<int[]>();
+            UpdateHeroesSp();
+        }
+
+        private void UpdateHeroesSp()
+        {
+            int selectedCostumesCost = this.HeroesBoard.EntitiesInBoard
+                .Where(entityInBoard => entityInBoard.SelectedCostume is not null)
+                .Sum(entityInBoard => entityInBoard.SelectedCostume!.Cost);
+
+            this.HeroesBoard.CurrentSp = this.HeroesBoard.MaxSp - selectedCostumesCost;
         }
 
         private void UpdateHeroesCostumeRange()
